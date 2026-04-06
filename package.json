@@ -9,7 +9,6 @@
     "node": ">=20 <25"
   },
   "scripts": {
-    "dev": "vercel dev",
     "prisma:generate": "prisma generate",
     "prisma:pull": "prisma db pull"
   },
