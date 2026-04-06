@@ -62,7 +62,7 @@
         <h2 class="brawl-heading text-3xl">Player Registration</h2>
         <form id="registrationForm" class="flex flex-col md:flex-row gap-3">
           <input id="playerTagInput" placeholder="#PLAYER_TAG" class="flex-1 px-4 py-3 rounded-xl border-4 border-black font-bold" required />
-          <button type="submit" class="brawl-btn bg-yellow-300 px-5 py-3">Fetch Preview</button>
+          <button type="submit" class="brawl-btn bg-yellow-300 px-5 py-3">Verify Player</button>
         </form>
 
         <div id="playerPreview" class="hidden border-4 border-black rounded-2xl bg-white p-4">
@@ -70,6 +70,8 @@
           <p class="font-bold mt-2">Name: <span id="previewName"></span></p>
           <p class="font-bold">Tag: <span id="previewTag"></span></p>
           <p class="font-bold">Trophies: <span id="previewTrophies"></span></p>
+          <p class="font-bold">Club: <span id="previewClub"></span></p>
+          <p class="font-bold">3v3 Victories: <span id="preview3v3"></span></p>
           <button id="confirmRegistrationBtn" type="button" class="brawl-btn bg-blue-300 px-5 py-3 mt-4">Confirm Registration</button>
         </div>
       </section>

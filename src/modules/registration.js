@@ -1,4 +1,4 @@
-import { fetchBrawlPlayerByTag } from './dataFetcher.js';
+import { getPlayerStats } from './dataFetcher.js';
 
 export function initRegistration({ getClient, notify }) {
   const form = document.getElementById('registrationForm');
@@ -8,17 +8,30 @@ export function initRegistration({ getClient, notify }) {
 
   let previewData = null;
 
+  function formatPlayerTag(tag) {
+    const normalized = String(tag ?? '').trim().toUpperCase();
+    if (!normalized) {
+      return '';
+    }
+
+    return normalized.startsWith('#') ? normalized : `#${normalized}`;
+  }
+
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     try {
-      previewData = await fetchBrawlPlayerByTag(tagInput.value);
+      previewData = await getPlayerStats(tagInput.value);
       preview.classList.remove('hidden');
       document.getElementById('previewName').textContent = previewData.name ?? 'Unknown';
-      document.getElementById('previewTag').textContent = `#${previewData.tag ?? ''}`;
+      document.getElementById('previewTag').textContent = formatPlayerTag(previewData.tag ?? tagInput.value);
       document.getElementById('previewTrophies').textContent = `${previewData.trophies ?? 0}`;
-      notify('Player fetched. Confirm to register.', 'ok');
-    } catch (error) {
-      notify(error.message, 'error');
+      document.getElementById('previewClub').textContent = previewData.club?.name ?? 'No club';
+      document.getElementById('preview3v3').textContent = `${previewData['3vs3Victories'] ?? 0}`;
+      notify('Player verified. Confirm to register.', 'ok');
+    } catch (_error) {
+      previewData = null;
+      preview.classList.add('hidden');
+      notify('Player not found or invalid tag.', 'error');
     }
   });
 
@@ -31,7 +44,7 @@ export function initRegistration({ getClient, notify }) {
     const client = await getClient();
     const insertPayload = {
       name: previewData.name,
-      brawl_tag: `#${previewData.tag}`,
+      brawl_tag: formatPlayerTag(previewData.tag ?? tagInput.value),
       trophies: previewData.trophies ?? 0,
       role: 'Casual',
       available: true,

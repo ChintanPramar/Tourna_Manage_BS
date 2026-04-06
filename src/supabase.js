@@ -2,24 +2,56 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 export let supabase = null;
 let appConfig = null;
+let supabaseInitPromise = null;
 
 export async function initSupabase() {
   if (supabase) return supabase;
+  if (supabaseInitPromise) return supabaseInitPromise;
 
-  const config = await getAppConfig();
-  const clean = (value) => String(value ?? '').trim().replace(/^"|"$/g, '');
-  const supabaseUrl = clean(config.supabaseUrl ?? window.__SUPABASE_URL__ ?? '');
-  const supabaseAnonKey = clean(config.supabaseAnonKey ?? window.__SUPABASE_ANON_KEY__ ?? '');
+  supabaseInitPromise = (async () => {
+    const config = await getAppConfig();
+    const clean = (value) => String(value ?? '').trim().replace(/^"|"$/g, '');
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase configuration. Set SUPABASE_URL and SUPABASE_ANON_KEY in .env.local (or NEXT_PUBLIC_/VITE_ variants), then restart vercel dev.');
+    let localUrl = '';
+    let localKey = '';
+    try {
+      localUrl = clean(window.localStorage?.getItem('SUPABASE_URL'));
+      localKey = clean(window.localStorage?.getItem('SUPABASE_ANON_KEY'));
+    } catch {
+      localUrl = '';
+      localKey = '';
+    }
+
+    const supabaseUrl =
+      clean(config.supabaseUrl) ||
+      clean(window.__SUPABASE_URL__) ||
+      clean(window.__NEXT_PUBLIC_SUPABASE_URL__) ||
+      clean(window.__VITE_SUPABASE_URL__) ||
+      localUrl;
+
+    const supabaseAnonKey =
+      clean(config.supabaseAnonKey) ||
+      clean(window.__SUPABASE_ANON_KEY__) ||
+      clean(window.__NEXT_PUBLIC_SUPABASE_ANON_KEY__) ||
+      clean(window.__VITE_SUPABASE_ANON_KEY__) ||
+      localKey;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Missing Supabase configuration. Set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel project env (or pass via query/localStorage), then redeploy/restart.');
+    }
+
+    supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+
+    return supabase;
+  })();
+
+  try {
+    return await supabaseInitPromise;
+  } finally {
+    supabaseInitPromise = null;
   }
-
-  supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: { persistSession: false },
-  });
-
-  return supabase;
 }
 
 export async function getAppConfig() {
