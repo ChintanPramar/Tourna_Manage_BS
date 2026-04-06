@@ -1,7 +1,20 @@
 module.exports = function handler(req, res) {
+  const supabaseUrl =
+    process.env.SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
+    process.env.VITE_SUPABASE_URL ??
+    '';
+
+  const supabaseAnonKey =
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    '';
+
   res.setHeader('Content-Type', 'application/json');
   res.status(200).json({
-    supabaseUrl: process.env.SUPABASE_URL ?? 'https://hvrfeamqhrydjsvuiebh.supabase.co',
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2cmZlYW1xaHJ5ZGpzdnVpZWJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODYxNzcsImV4cCI6MjA5MTA2MjE3N30.W4-GZV6wjaOkNtV4poiER2KvOjPti8MXukI2luuBF30',
+    supabaseUrl,
+    supabaseAnonKey,
+    adminDashboardPassword: process.env.ADMIN_DASHBOARD_PASSWORD ?? '',
   });
 };

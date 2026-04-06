@@ -1,17 +1,18 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 export let supabase = null;
+let appConfig = null;
 
 export async function initSupabase() {
   if (supabase) return supabase;
 
-  const configResponse = await fetch('/api/config');
-  const config = await configResponse.json();
-  const supabaseUrl = config.supabaseUrl ?? window.__SUPABASE_URL__ ?? '';
-  const supabaseAnonKey = config.supabaseAnonKey ?? window.__SUPABASE_ANON_KEY__ ?? '';
+  const config = await getAppConfig();
+  const clean = (value) => String(value ?? '').trim().replace(/^"|"$/g, '');
+  const supabaseUrl = clean(config.supabaseUrl ?? window.__SUPABASE_URL__ ?? '');
+  const supabaseAnonKey = clean(config.supabaseAnonKey ?? window.__SUPABASE_ANON_KEY__ ?? '');
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase configuration.');
+    throw new Error('Missing Supabase configuration. Set SUPABASE_URL and SUPABASE_ANON_KEY in .env.local (or NEXT_PUBLIC_/VITE_ variants), then restart vercel dev.');
   }
 
   supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -19,6 +20,21 @@ export async function initSupabase() {
   });
 
   return supabase;
+}
+
+export async function getAppConfig() {
+  if (appConfig) return appConfig;
+  try {
+    const configResponse = await fetch('/api/config');
+    if (!configResponse.ok) {
+      appConfig = {};
+      return appConfig;
+    }
+    appConfig = await configResponse.json();
+  } catch {
+    appConfig = {};
+  }
+  return appConfig;
 }
 
 export const BRAWLERS = ['Frank', 'Hank', 'Edgar'];

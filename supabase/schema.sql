@@ -24,12 +24,55 @@ create table if not exists public.players (
   id uuid primary key default gen_random_uuid(),
   profile_id uuid references public.profiles(id) on delete set null,
   name text not null,
+  brawl_tag text unique,
+  trophies integer not null default 0,
   role text not null check (role in ('Pro', 'Semi-Pro', 'Casual')),
   available boolean not null default true,
   mvp_eligible boolean not null default false,
   pool_id uuid references public.pools(id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+alter table public.players add column if not exists profile_id uuid;
+alter table public.players add column if not exists name text;
+alter table public.players add column if not exists role text default 'Casual';
+alter table public.players add column if not exists available boolean not null default true;
+alter table public.players add column if not exists mvp_eligible boolean not null default false;
+alter table public.players add column if not exists pool_id uuid;
+alter table public.players add column if not exists created_at timestamptz not null default now();
+
+update public.players set name = coalesce(name, 'Unknown Player');
+update public.players set role = coalesce(role, 'Casual');
+
+alter table public.players alter column name set not null;
+alter table public.players alter column role set not null;
+
+do $$ begin
+  alter table public.players add constraint players_role_check check (role in ('Pro', 'Semi-Pro', 'Casual'));
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$ begin
+  alter table public.players add constraint players_profile_id_fkey foreign key (profile_id) references public.profiles(id) on delete set null;
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$ begin
+  alter table public.players add constraint players_pool_id_fkey foreign key (pool_id) references public.pools(id) on delete set null;
+exception
+  when duplicate_object then null;
+end $$;
+
+alter table public.players add column if not exists brawl_tag text;
+alter table public.players add column if not exists trophies integer not null default 0;
+do $$ begin
+  alter table public.players add constraint players_brawl_tag_unique unique (brawl_tag);
+exception
+  when duplicate_table then null;
+  when duplicate_object then null;
+end $$;
 
 create index if not exists idx_players_role on public.players(role);
 create index if not exists idx_players_pool_id on public.players(pool_id);
@@ -78,6 +121,35 @@ create table if not exists public.mvp_votes (
 );
 
 create index if not exists idx_mvp_votes_player_id on public.mvp_votes(player_id);
+
+create table if not exists public.tournaments (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  mode text,
+  status text check (status in ('upcoming', 'current', 'previous')),
+  start_at timestamptz,
+  end_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table public.tournaments add column if not exists title text;
+alter table public.tournaments add column if not exists mode text;
+alter table public.tournaments add column if not exists status text;
+alter table public.tournaments add column if not exists start_at timestamptz;
+alter table public.tournaments add column if not exists end_at timestamptz;
+alter table public.tournaments add column if not exists created_at timestamptz not null default now();
+
+update public.tournaments set title = coalesce(title, 'Untitled Tournament');
+alter table public.tournaments alter column title set not null;
+
+do $$ begin
+  alter table public.tournaments add constraint tournaments_status_check check (status in ('upcoming', 'current', 'previous'));
+exception
+  when duplicate_object then null;
+end $$;
+
+create index if not exists idx_tournaments_status on public.tournaments(status);
+create index if not exists idx_tournaments_start_at on public.tournaments(start_at);
 
 create or replace function public.enforce_pool_semi_pro_capacity()
 returns trigger
@@ -149,11 +221,13 @@ drop policy if exists "public read pools" on public.pools;
 drop policy if exists "public read team assignments" on public.team_assignments;
 drop policy if exists "public read match results" on public.match_results;
 drop policy if exists "public read mvp votes" on public.mvp_votes;
+drop policy if exists "public read tournaments" on public.tournaments;
 drop policy if exists "authenticated manage pools" on public.pools;
 drop policy if exists "authenticated manage players" on public.players;
 drop policy if exists "authenticated manage assignments" on public.team_assignments;
 drop policy if exists "authenticated manage matches" on public.match_results;
 drop policy if exists "authenticated manage votes" on public.mvp_votes;
+drop policy if exists "authenticated manage tournaments" on public.tournaments;
 
 alter table public.profiles enable row level security;
 alter table public.players enable row level security;
@@ -161,6 +235,7 @@ alter table public.pools enable row level security;
 alter table public.team_assignments enable row level security;
 alter table public.match_results enable row level security;
 alter table public.mvp_votes enable row level security;
+alter table public.tournaments enable row level security;
 
 create policy "public read profiles" on public.profiles for select using (true);
 create policy "public read players" on public.players for select using (true);
@@ -168,9 +243,11 @@ create policy "public read pools" on public.pools for select using (true);
 create policy "public read team assignments" on public.team_assignments for select using (true);
 create policy "public read match results" on public.match_results for select using (true);
 create policy "public read mvp votes" on public.mvp_votes for select using (true);
+create policy "public read tournaments" on public.tournaments for select using (true);
 
 create policy "authenticated manage pools" on public.pools for all to authenticated using (true) with check (true);
 create policy "authenticated manage players" on public.players for all to authenticated using (true) with check (true);
 create policy "authenticated manage assignments" on public.team_assignments for all to authenticated using (true) with check (true);
 create policy "authenticated manage matches" on public.match_results for all to authenticated using (true) with check (true);
 create policy "authenticated manage votes" on public.mvp_votes for all to authenticated using (true) with check (true);
+create policy "authenticated manage tournaments" on public.tournaments for all to authenticated using (true) with check (true);

@@ -3,236 +3,140 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tourna Manage BS</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Brawl Stars Club Modules</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              bg: '#0b1020',
-              panel: '#111827',
-              panel2: '#0f172a',
-              accent: '#7c3aed',
-              accent2: '#22c55e',
-            },
-            boxShadow: {
-              glow: '0 0 0 1px rgba(124,58,237,.35), 0 12px 60px rgba(124,58,237,.18)',
-            },
-          },
-        },
-      }
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const fromQueryUrl = params.get('supabase_url') || '';
+        const fromQueryKey = params.get('supabase_anon_key') || '';
+
+        let fromStorageUrl = '';
+        let fromStorageKey = '';
+        try {
+          fromStorageUrl = window.localStorage?.getItem('SUPABASE_URL') || '';
+          fromStorageKey = window.localStorage?.getItem('SUPABASE_ANON_KEY') || '';
+        } catch {
+          fromStorageUrl = '';
+          fromStorageKey = '';
+        }
+
+        window.__SUPABASE_URL__ = window.__SUPABASE_URL__ || fromQueryUrl || fromStorageUrl || '';
+        window.__SUPABASE_ANON_KEY__ = window.__SUPABASE_ANON_KEY__ || fromQueryKey || fromStorageKey || '';
+      })();
     </script>
     <style>
-      body { background: radial-gradient(circle at top, #18213f 0, #0b1020 45%, #070b16 100%); }
-      .wheel {
-        background: conic-gradient(from 0deg, #7c3aed, #ec4899, #f59e0b, #22c55e, #06b6d4, #7c3aed);
-        box-shadow: inset 0 0 0 10px rgba(255,255,255,.05), 0 24px 80px rgba(0,0,0,.35);
-      }
-      .card { background: linear-gradient(180deg, rgba(17,24,39,.95), rgba(15,23,42,.92)); }
-      .glass { backdrop-filter: blur(14px); }
+      body { background: radial-gradient(circle at top, #7dd3fc 0%, #60a5fa 40%, #2563eb 100%); }
+      .brawl-heading { font-family: 'Lilita One', system-ui, sans-serif; letter-spacing: .03em; }
+      .brawl-card { border: 4px solid #000; border-radius: 18px; background: rgba(255,255,255,.85); }
+      .brawl-btn { border: 4px solid #000; border-radius: 12px; font-weight: 800; box-shadow: 0 5px 0 #111; transform: translateY(0); transition: all .12s ease; }
+      .brawl-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 #111; }
+      #wheelContainer { transition: transform 2.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
     </style>
   </head>
-  <body class="text-slate-100 min-h-screen">
-    <header class="border-b border-white/10 bg-black/20 glass sticky top-0 z-30">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-        <div>
-          <p class="text-xs uppercase tracking-[0.35em] text-violet-300/80">Discord Club Brawl Stars</p>
-          <h1 class="text-2xl md:text-3xl font-black">Semi-Pro 1v1 Drafting & Pool System</h1>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <button data-tab="admin" class="tab-btn px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Admin</button>
-          <button data-tab="draft" class="tab-btn px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 font-semibold">Drafting</button>
-          <button data-tab="mvp" class="tab-btn px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 font-semibold">MVP Voting</button>
-        </div>
+  <body class="text-slate-900 min-h-screen">
+    <header class="max-w-7xl mx-auto p-4 md:p-6">
+      <div class="brawl-card p-4 md:p-6">
+        <p class="brawl-heading text-4xl md:text-5xl text-center">Brawl Stars Club Control Center</p>
+        <p class="text-center font-bold mt-2">Registration · Admin · Wheel · Tournament Feed</p>
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <section class="grid lg:grid-cols-3 gap-4">
-        <div class="card rounded-3xl p-5 border border-white/10 shadow-glow">
-          <p class="text-sm text-slate-400">Pools</p>
-          <p id="countPools" class="text-3xl font-black mt-1">0</p>
-        </div>
-        <div class="card rounded-3xl p-5 border border-white/10 shadow-glow">
-          <p class="text-sm text-slate-400">Semi-Pro Players</p>
-          <p id="countSemiPros" class="text-3xl font-black mt-1">0</p>
-        </div>
-        <div class="card rounded-3xl p-5 border border-white/10 shadow-glow">
-          <p class="text-sm text-slate-400">MVP Votes</p>
-          <p id="countVotes" class="text-3xl font-black mt-1">0</p>
+    <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-5">
+      <section class="brawl-card p-3 md:p-4">
+        <div class="flex flex-wrap gap-2">
+          <button data-tab="registration" class="brawl-btn bg-yellow-300 px-4 py-2">Registration</button>
+          <button data-tab="admin" class="brawl-btn bg-blue-300 px-4 py-2">Admin Dashboard</button>
+          <button data-tab="wheel" class="brawl-btn bg-blue-300 px-4 py-2">Wheel</button>
+          <button data-tab="feed" class="brawl-btn bg-blue-300 px-4 py-2">Tournament Feed</button>
         </div>
       </section>
 
-      <section id="notice" class="hidden rounded-2xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-violet-100"></section>
+      <section id="notice" class="rounded-2xl border-4 border-black bg-green-300 text-black px-4 py-3 font-bold"></section>
 
-      <section id="adminSection" class="space-y-6">
-        <div class="grid xl:grid-cols-2 gap-6">
-          <div class="card rounded-3xl p-6 border border-white/10">
-            <div class="flex items-center justify-between gap-4 mb-4">
-              <div>
-                <h2 class="text-xl font-bold">Dynamic Pool Creation</h2>
-                <p class="text-sm text-slate-400">Create Pool A, Pool B, Pool C ... on demand.</p>
-              </div>
-              <button id="addPoolBtn" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Add Pool</button>
-            </div>
-            <form id="poolForm" class="grid md:grid-cols-3 gap-3 items-end">
-              <div>
-                <label class="text-sm text-slate-400 block mb-1">Pool count to add</label>
-                <input id="poolCount" type="number" min="1" value="1" class="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2 outline-none focus:border-violet-500" />
-              </div>
-              <div class="md:col-span-2 flex gap-2">
-                <button type="submit" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 font-semibold">Create</button>
-                <button type="button" id="refreshBtn" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 font-semibold">Refresh data</button>
-              </div>
-            </form>
-            <div id="poolsList" class="mt-5 grid sm:grid-cols-2 gap-3"></div>
-          </div>
+      <section data-section="registration" class="brawl-card p-5 space-y-4">
+        <h2 class="brawl-heading text-3xl">Player Registration</h2>
+        <form id="registrationForm" class="flex flex-col md:flex-row gap-3">
+          <input id="playerTagInput" placeholder="#PLAYER_TAG" class="flex-1 px-4 py-3 rounded-xl border-4 border-black font-bold" required />
+          <button type="submit" class="brawl-btn bg-yellow-300 px-5 py-3">Fetch Preview</button>
+        </form>
 
-          <div class="card rounded-3xl p-6 border border-white/10">
-            <div class="flex items-center justify-between gap-4 mb-4">
-              <div>
-                <h2 class="text-xl font-bold">1v1 Phase Management</h2>
-                <p class="text-sm text-slate-400">Pair all Semi-Pro players for live matches, toss for first Brawler pick, then record results.</p>
-              </div>
-              <button id="pairBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-semibold">Generate Pairings</button>
-            </div>
-            <div id="pairingsList" class="space-y-3"></div>
-          </div>
-        </div>
-
-        <div class="card rounded-3xl p-6 border border-white/10">
-          <div class="flex items-center justify-between gap-4 mb-4">
-            <div>
-              <h2 class="text-xl font-bold">Database Snapshot</h2>
-              <p class="text-sm text-slate-400">Pulled directly from Supabase: pools, teams, and live match results.</p>
-            </div>
-          </div>
-          <div class="grid lg:grid-cols-3 gap-4">
-            <div>
-              <h3 class="font-semibold mb-2 text-violet-200">Teams</h3>
-              <div id="teamsList" class="space-y-2"></div>
-            </div>
-            <div>
-              <h3 class="font-semibold mb-2 text-violet-200">Match Results</h3>
-              <div id="matchesList" class="space-y-2"></div>
-            </div>
-            <div>
-              <h3 class="font-semibold mb-2 text-violet-200">Available Draft Players</h3>
-              <div id="draftLists" class="space-y-4"></div>
-            </div>
-          </div>
+        <div id="playerPreview" class="hidden border-4 border-black rounded-2xl bg-white p-4">
+          <p class="brawl-heading text-2xl">Preview Card</p>
+          <p class="font-bold mt-2">Name: <span id="previewName"></span></p>
+          <p class="font-bold">Tag: <span id="previewTag"></span></p>
+          <p class="font-bold">Trophies: <span id="previewTrophies"></span></p>
+          <button id="confirmRegistrationBtn" type="button" class="brawl-btn bg-blue-300 px-5 py-3 mt-4">Confirm Registration</button>
         </div>
       </section>
 
-      <section id="draftSection" class="hidden space-y-6">
-        <div class="card rounded-3xl p-6 border border-white/10">
-          <div class="flex items-center justify-between gap-4 mb-4">
-            <div>
-              <h2 class="text-xl font-bold">Pool Control System</h2>
-              <p class="text-sm text-slate-400">Winner chooses a pool, loser is sent to another open pool, and the pool capacity is validated before saving.</p>
-            </div>
-            <button id="loadWinnerBtn" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Load Latest Winner</button>
-          </div>
-          <div id="winnerPanel" class="grid lg:grid-cols-2 gap-5"></div>
-        </div>
+      <section data-section="admin" class="hidden brawl-card p-5 space-y-4">
+        <h2 class="brawl-heading text-3xl">Admin Dashboard</h2>
+        <form id="adminLoginForm" class="flex flex-col md:flex-row gap-3">
+          <input id="adminPasswordInput" type="password" placeholder="Admin password" class="flex-1 px-4 py-3 rounded-xl border-4 border-black font-bold" required />
+          <button class="brawl-btn bg-yellow-300 px-5 py-3" type="submit">Unlock</button>
+        </form>
 
-        <div class="grid xl:grid-cols-2 gap-6">
-          <div class="card rounded-3xl p-6 border border-white/10">
-            <h2 class="text-xl font-bold mb-2">Brawl Spinner – Pro Draft</h2>
-            <p class="text-sm text-slate-400 mb-4">Spin only from available Pro players and assign the selected Pro to the semi-pro's team.</p>
-            <div class="flex flex-col items-center gap-4">
-              <div id="proWheel" class="wheel rounded-full w-64 h-64 md:w-80 md:h-80 relative border-8 border-white/15"></div>
-              <div class="flex gap-2 flex-wrap justify-center">
-                <button id="spinProBtn" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Spin Pro Wheel</button>
-                <button id="spinCasualBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-semibold">Spin Casual Wheel</button>
-              </div>
-              <p id="wheelResult" class="text-lg font-semibold text-center"></p>
-            </div>
-          </div>
-
-          <div class="card rounded-3xl p-6 border border-white/10">
-            <h2 class="text-xl font-bold mb-2">MVP Bonus Eligibility</h2>
-            <p class="text-sm text-slate-400 mb-4">Only Semi-Pro players that won their 1v1 are eligible for voting.</p>
-            <div id="eligibleList" class="grid sm:grid-cols-2 gap-3"></div>
-          </div>
+        <div id="adminPanel" class="hidden space-y-3">
+          <p class="font-bold">Registered players (change category dropdown):</p>
+          <div id="adminPlayersList" class="grid md:grid-cols-2 gap-3"></div>
         </div>
       </section>
 
-      <section id="mvpSection" class="hidden space-y-6">
-        <div class="card rounded-3xl p-6 border border-white/10">
-          <div class="flex items-center justify-between gap-4 mb-4">
-            <div>
-              <h2 class="text-xl font-bold">MVP Voting</h2>
-              <p class="text-sm text-slate-400">Vote for the Semi-Pro winners. Highest votes becomes MVP of the Day and wins a Brawl Pass.</p>
-            </div>
-            <button id="refreshMvpBtn" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Refresh votes</button>
+      <section data-section="wheel" class="hidden brawl-card p-5 space-y-4">
+        <h2 class="brawl-heading text-3xl">The Wheel</h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="font-bold">Category</label>
+          <select id="wheelCategorySelect" class="px-3 py-2 rounded-xl border-4 border-black font-bold bg-yellow-300">
+            <option value="Pro">Pro</option>
+            <option value="Semi-Pro">Semi-Pro</option>
+            <option value="Casual">Casual</option>
+          </select>
+          <button id="spinWheelBtn" class="brawl-btn bg-blue-300 px-5 py-3">Spin</button>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-4 items-center">
+          <div id="wheelContainer" class="mx-auto h-64 w-64 rounded-full border-4 border-black bg-yellow-200 grid place-items-center">
+            <span class="brawl-heading text-3xl">SPIN</span>
           </div>
-          <div id="mvpCandidates" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+          <div id="wheelNames" class="flex flex-wrap gap-2"></div>
+        </div>
+      </section>
+
+      <section data-section="feed" class="hidden brawl-card p-5 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h2 class="brawl-heading text-3xl">Tournament Feed</h2>
+          <button id="refreshTournamentFeedBtn" class="brawl-btn bg-yellow-300 px-4 py-2">Refresh</button>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-4">
+          <div>
+            <h3 class="brawl-heading text-2xl">Upcoming</h3>
+            <div id="tournamentsUpcoming" class="space-y-3 mt-2"></div>
+          </div>
+          <div>
+            <h3 class="brawl-heading text-2xl">Current</h3>
+            <div id="tournamentsCurrent" class="space-y-3 mt-2"></div>
+          </div>
+          <div>
+            <h3 class="brawl-heading text-2xl">Previous</h3>
+            <div id="tournamentsPrevious" class="space-y-3 mt-2"></div>
+          </div>
         </div>
       </section>
     </main>
 
-    <template id="pairingTemplate">
-      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-        <div class="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <p class="text-sm text-slate-400">Match</p>
-            <h3 class="font-bold match-title"></h3>
-          </div>
-          <button class="coin-btn px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-sm font-semibold">Coin Toss</button>
-        </div>
-        <div class="mt-4 grid md:grid-cols-2 gap-3 text-sm">
-          <button class="player-btn p-3 rounded-xl bg-black/20 border border-white/10 text-left hover:border-violet-500/40"></button>
-          <button class="player-btn p-3 rounded-xl bg-black/20 border border-white/10 text-left hover:border-violet-500/40"></button>
-        </div>
-        <div class="mt-4 grid md:grid-cols-3 gap-3 items-end">
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Winner</label>
-            <select class="winner-select w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2"></select>
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Loser</label>
-            <select class="loser-select w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2"></select>
-          </div>
-          <button class="save-match px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-semibold">Save Result</button>
-        </div>
+    <div id="wheelWinnerPopup" class="hidden fixed inset-0 bg-black/60 z-50 p-5 grid place-items-center">
+      <div class="border-4 border-black rounded-3xl bg-yellow-300 text-slate-900 p-8 text-center shadow-[0_8px_0_#111] max-w-lg w-full">
+        <p class="brawl-heading text-4xl">BRAWL WINNER!</p>
+        <p id="wheelWinnerName" class="brawl-heading text-5xl mt-4"></p>
+        <button id="closeWinnerPopupBtn" class="brawl-btn bg-blue-300 px-5 py-3 mt-6">Close</button>
       </div>
-    </template>
-
-    <template id="winnerTemplate">
-      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-        <div class="flex items-center justify-between gap-2 flex-wrap">
-          <div>
-            <p class="text-sm text-slate-400">Latest winner</p>
-            <h3 class="font-bold winner-name"></h3>
-          </div>
-          <span class="pill text-xs px-3 py-1 rounded-full bg-violet-600/20 text-violet-200 border border-violet-500/30">Winner</span>
-        </div>
-        <div class="grid gap-3">
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Winner Pool</label>
-            <select class="winner-pool w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2"></select>
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Loser Pool</label>
-            <select class="loser-pool w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2"></select>
-          </div>
-          <button class="save-pool px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Assign Pools</button>
-        </div>
-      </div>
-      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-        <div>
-          <p class="text-sm text-slate-400">Wheel-based Drafting</p>
-          <h3 class="font-bold">Spin the remaining slots</h3>
-        </div>
-        <div class="text-sm text-slate-300 space-y-2">
-          <p>1. Spin the Pro wheel using only available Pro players.</p>
-          <p>2. Spin the Casual wheel using only available Casual players.</p>
-          <p>3. The selected player is removed from the available pool automatically.</p>
-        </div>
-      </div>
-    </template>
+    </div>
 
     <script type="module" src="./src/app.js"></script>
   </body>

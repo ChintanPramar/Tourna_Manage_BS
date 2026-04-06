@@ -1,0 +1,23 @@
+{
+  "name": "tourna_manage_bs",
+  "version": "1.0.0",
+  "description": "Brawl Stars club management app with registration, admin categories, wheel picker, and tournament feed.",
+  "private": true,
+  "main": "index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "prisma:generate": "prisma generate",
+    "prisma:pull": "prisma db pull"
+  },
+  "devDependencies": {
+    "prisma": "^6.11.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.11.1",
+    "dotenv": "^16.6.1"
+  }
+}

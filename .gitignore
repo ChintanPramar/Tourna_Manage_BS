@@ -1,0 +1,14 @@
+.vercel/
+.vscode/
+.agents/
+skills-lock.json
+node_modules/
+
+.env
+.env.*
+!.env.example
+
+dist/
+coverage/
+
+src/generated/prisma/
