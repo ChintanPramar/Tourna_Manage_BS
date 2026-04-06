@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tourna Manage BS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              bg: '#0b1020',
+              panel: '#111827',
+              panel2: '#0f172a',
+              accent: '#7c3aed',
+              accent2: '#22c55e',
+            },
+            boxShadow: {
+              glow: '0 0 0 1px rgba(124,58,237,.35), 0 12px 60px rgba(124,58,237,.18)',
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      body { background: radial-gradient(circle at top, #18213f 0, #0b1020 45%, #070b16 100%); }
+      .wheel {
+        background: conic-gradient(from 0deg, #7c3aed, #ec4899, #f59e0b, #22c55e, #06b6d4, #7c3aed);
+        box-shadow: inset 0 0 0 10px rgba(255,255,255,.05), 0 24px 80px rgba(0,0,0,.35);
+      }
+      .card { background: linear-gradient(180deg, rgba(17,24,39,.95), rgba(15,23,42,.92)); }
+      .glass { backdrop-filter: blur(14px); }
+    </style>
+  </head>
+  <body class="text-slate-100 min-h-screen">
+    <header class="border-b border-white/10 bg-black/20 glass sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.35em] text-violet-300/80">Discord Club Brawl Stars</p>
+          <h1 class="text-2xl md:text-3xl font-black">Semi-Pro 1v1 Drafting & Pool System</h1>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button data-tab="admin" class="tab-btn px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Admin</button>
+          <button data-tab="draft" class="tab-btn px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 font-semibold">Drafting</button>
+          <button data-tab="mvp" class="tab-btn px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 font-semibold">MVP Voting</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <section class="grid lg:grid-cols-3 gap-4">
+        <div class="card rounded-3xl p-5 border border-white/10 shadow-glow">
+          <p class="text-sm text-slate-400">Pools</p>
+          <p id="countPools" class="text-3xl font-black mt-1">0</p>
+        </div>
+        <div class="card rounded-3xl p-5 border border-white/10 shadow-glow">
+          <p class="text-sm text-slate-400">Semi-Pro Players</p>
+          <p id="countSemiPros" class="text-3xl font-black mt-1">0</p>
+        </div>
+        <div class="card rounded-3xl p-5 border border-white/10 shadow-glow">
+          <p class="text-sm text-slate-400">MVP Votes</p>
+          <p id="countVotes" class="text-3xl font-black mt-1">0</p>
+        </div>
+      </section>
+
+      <section id="notice" class="hidden rounded-2xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-violet-100"></section>
+
+      <section id="adminSection" class="space-y-6">
+        <div class="grid xl:grid-cols-2 gap-6">
+          <div class="card rounded-3xl p-6 border border-white/10">
+            <div class="flex items-center justify-between gap-4 mb-4">
+              <div>
+                <h2 class="text-xl font-bold">Dynamic Pool Creation</h2>
+                <p class="text-sm text-slate-400">Create Pool A, Pool B, Pool C ... on demand.</p>
+              </div>
+              <button id="addPoolBtn" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Add Pool</button>
+            </div>
+            <form id="poolForm" class="grid md:grid-cols-3 gap-3 items-end">
+              <div>
+                <label class="text-sm text-slate-400 block mb-1">Pool count to add</label>
+                <input id="poolCount" type="number" min="1" value="1" class="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2 outline-none focus:border-violet-500" />
+              </div>
+              <div class="md:col-span-2 flex gap-2">
+                <button type="submit" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 font-semibold">Create</button>
+                <button type="button" id="refreshBtn" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 font-semibold">Refresh data</button>
+              </div>
+            </form>
+            <div id="poolsList" class="mt-5 grid sm:grid-cols-2 gap-3"></div>
+          </div>
+
+          <div class="card rounded-3xl p-6 border border-white/10">
+            <div class="flex items-center justify-between gap-4 mb-4">
+              <div>
+                <h2 class="text-xl font-bold">1v1 Phase Management</h2>
+                <p class="text-sm text-slate-400">Pair all Semi-Pro players for live matches, toss for first Brawler pick, then record results.</p>
+              </div>
+              <button id="pairBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-semibold">Generate Pairings</button>
+            </div>
+            <div id="pairingsList" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <div class="card rounded-3xl p-6 border border-white/10">
+          <div class="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 class="text-xl font-bold">Database Snapshot</h2>
+              <p class="text-sm text-slate-400">Pulled directly from Supabase: pools, teams, and live match results.</p>
+            </div>
+          </div>
+          <div class="grid lg:grid-cols-3 gap-4">
+            <div>
+              <h3 class="font-semibold mb-2 text-violet-200">Teams</h3>
+              <div id="teamsList" class="space-y-2"></div>
+            </div>
+            <div>
+              <h3 class="font-semibold mb-2 text-violet-200">Match Results</h3>
+              <div id="matchesList" class="space-y-2"></div>
+            </div>
+            <div>
+              <h3 class="font-semibold mb-2 text-violet-200">Available Draft Players</h3>
+              <div id="draftLists" class="space-y-4"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="draftSection" class="hidden space-y-6">
+        <div class="card rounded-3xl p-6 border border-white/10">
+          <div class="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 class="text-xl font-bold">Pool Control System</h2>
+              <p class="text-sm text-slate-400">Winner chooses a pool, loser is sent to another open pool, and the pool capacity is validated before saving.</p>
+            </div>
+            <button id="loadWinnerBtn" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Load Latest Winner</button>
+          </div>
+          <div id="winnerPanel" class="grid lg:grid-cols-2 gap-5"></div>
+        </div>
+
+        <div class="grid xl:grid-cols-2 gap-6">
+          <div class="card rounded-3xl p-6 border border-white/10">
+            <h2 class="text-xl font-bold mb-2">Brawl Spinner – Pro Draft</h2>
+            <p class="text-sm text-slate-400 mb-4">Spin only from available Pro players and assign the selected Pro to the semi-pro's team.</p>
+            <div class="flex flex-col items-center gap-4">
+              <div id="proWheel" class="wheel rounded-full w-64 h-64 md:w-80 md:h-80 relative border-8 border-white/15"></div>
+              <div class="flex gap-2 flex-wrap justify-center">
+                <button id="spinProBtn" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Spin Pro Wheel</button>
+                <button id="spinCasualBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-semibold">Spin Casual Wheel</button>
+              </div>
+              <p id="wheelResult" class="text-lg font-semibold text-center"></p>
+            </div>
+          </div>
+
+          <div class="card rounded-3xl p-6 border border-white/10">
+            <h2 class="text-xl font-bold mb-2">MVP Bonus Eligibility</h2>
+            <p class="text-sm text-slate-400 mb-4">Only Semi-Pro players that won their 1v1 are eligible for voting.</p>
+            <div id="eligibleList" class="grid sm:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvpSection" class="hidden space-y-6">
+        <div class="card rounded-3xl p-6 border border-white/10">
+          <div class="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 class="text-xl font-bold">MVP Voting</h2>
+              <p class="text-sm text-slate-400">Vote for the Semi-Pro winners. Highest votes becomes MVP of the Day and wins a Brawl Pass.</p>
+            </div>
+            <button id="refreshMvpBtn" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Refresh votes</button>
+          </div>
+          <div id="mvpCandidates" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+        </div>
+      </section>
+    </main>
+
+    <template id="pairingTemplate">
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p class="text-sm text-slate-400">Match</p>
+            <h3 class="font-bold match-title"></h3>
+          </div>
+          <button class="coin-btn px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-sm font-semibold">Coin Toss</button>
+        </div>
+        <div class="mt-4 grid md:grid-cols-2 gap-3 text-sm">
+          <button class="player-btn p-3 rounded-xl bg-black/20 border border-white/10 text-left hover:border-violet-500/40"></button>
+          <button class="player-btn p-3 rounded-xl bg-black/20 border border-white/10 text-left hover:border-violet-500/40"></button>
+        </div>
+        <div class="mt-4 grid md:grid-cols-3 gap-3 items-end">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Winner</label>
+            <select class="winner-select w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2"></select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Loser</label>
+            <select class="loser-select w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2"></select>
+          </div>
+          <button class="save-match px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-semibold">Save Result</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="winnerTemplate">
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <p class="text-sm text-slate-400">Latest winner</p>
+            <h3 class="font-bold winner-name"></h3>
+          </div>
+          <span class="pill text-xs px-3 py-1 rounded-full bg-violet-600/20 text-violet-200 border border-violet-500/30">Winner</span>
+        </div>
+        <div class="grid gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Winner Pool</label>
+            <select class="winner-pool w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2"></select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Loser Pool</label>
+            <select class="loser-pool w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2"></select>
+          </div>
+          <button class="save-pool px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold">Assign Pools</button>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+        <div>
+          <p class="text-sm text-slate-400">Wheel-based Drafting</p>
+          <h3 class="font-bold">Spin the remaining slots</h3>
+        </div>
+        <div class="text-sm text-slate-300 space-y-2">
+          <p>1. Spin the Pro wheel using only available Pro players.</p>
+          <p>2. Spin the Casual wheel using only available Casual players.</p>
+          <p>3. The selected player is removed from the available pool automatically.</p>
+        </div>
+      </div>
+    </template>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
