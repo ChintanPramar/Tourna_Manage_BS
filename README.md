@@ -19,10 +19,15 @@ Brawl Stars club management website with:
 	- `npm install`
 2. Create `.env.local` (use [`.env.example`](.env.example) as template).
 3. Required server env:
-	- `BRAWL_STARS_API_KEY=...`
+	- `SUPABASE_URL` (or `SUPABASE_PROJECT_URL`)
+	- `SUPABASE_ANON_KEY` (or `SUPABASE_PUBLISHABLE_KEY`)
+	- `ADMIN_DASHBOARD_PASSWORD`
+	- `BRAWL_STARS_API_KEY`
 4. Apply DB schema from [supabase/schema.sql](supabase/schema.sql) in Supabase SQL Editor.
 5. Start dev server:
 	- `npm run dev`
+6. Optional sanity check:
+	- open `/api/config` and confirm `configStatus.hasSupabaseUrl` and `configStatus.hasSupabaseAnonKey` are both `true`.
 
 ## Security: Secret Rotation Checklist
 If any `.env` values are exposed, rotate immediately in this order:

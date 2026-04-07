@@ -15,8 +15,12 @@ export async function initSupabase() {
     let localUrl = '';
     let localKey = '';
     try {
-      localUrl = clean(window.localStorage?.getItem('SUPABASE_URL'));
-      localKey = clean(window.localStorage?.getItem('SUPABASE_ANON_KEY'));
+      localUrl =
+        clean(window.localStorage?.getItem('SUPABASE_URL')) ||
+        clean(window.localStorage?.getItem('SUPABASE_PROJECT_URL'));
+      localKey =
+        clean(window.localStorage?.getItem('SUPABASE_ANON_KEY')) ||
+        clean(window.localStorage?.getItem('SUPABASE_PUBLISHABLE_KEY'));
     } catch {
       localUrl = '';
       localKey = '';
@@ -25,19 +29,30 @@ export async function initSupabase() {
     const supabaseUrl =
       clean(config.supabaseUrl) ||
       clean(window.__SUPABASE_URL__) ||
+      clean(window.__SUPABASE_PROJECT_URL__) ||
       clean(window.__NEXT_PUBLIC_SUPABASE_URL__) ||
+      clean(window.__NEXT_PUBLIC_SUPABASE_PROJECT_URL__) ||
       clean(window.__VITE_SUPABASE_URL__) ||
+      clean(window.__VITE_SUPABASE_PROJECT_URL__) ||
       localUrl;
 
     const supabaseAnonKey =
       clean(config.supabaseAnonKey) ||
       clean(window.__SUPABASE_ANON_KEY__) ||
+      clean(window.__SUPABASE_PUBLISHABLE_KEY__) ||
       clean(window.__NEXT_PUBLIC_SUPABASE_ANON_KEY__) ||
+      clean(window.__NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY__) ||
       clean(window.__VITE_SUPABASE_ANON_KEY__) ||
+      clean(window.__VITE_SUPABASE_PUBLISHABLE_KEY__) ||
       localKey;
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Missing Supabase configuration. Set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel project env (or pass via query/localStorage), then redeploy/restart.');
+      const apiConfigDebug = config.configStatus
+        ? ` /api/config status: url=${config.configStatus.hasSupabaseUrl}, key=${config.configStatus.hasSupabaseAnonKey}`
+        : '';
+      throw new Error(
+        `Missing Supabase configuration. Set SUPABASE_URL (or SUPABASE_PROJECT_URL) and SUPABASE_ANON_KEY (or SUPABASE_PUBLISHABLE_KEY) in Vercel env, then redeploy/restart.${apiConfigDebug}`,
+      );
     }
 
     supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -59,12 +74,12 @@ export async function getAppConfig() {
   try {
     const configResponse = await fetch('/api/config');
     if (!configResponse.ok) {
-      appConfig = {};
+      appConfig = { configStatus: { configEndpointError: `HTTP ${configResponse.status}` } };
       return appConfig;
     }
     appConfig = await configResponse.json();
-  } catch {
-    appConfig = {};
+  } catch (error) {
+    appConfig = { configStatus: { configEndpointError: error?.message ?? 'Network error' } };
   }
   return appConfig;
 }
